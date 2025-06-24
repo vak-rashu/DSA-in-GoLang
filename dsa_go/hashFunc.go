@@ -3,12 +3,16 @@ package dsa
 import "fmt"
 
 type hashNode struct {
-	info any
+	info string
 	next *hashNode
 }
 
+type headNode struct {
+	head *hashNode
+}
+
 type hashMap struct {
-	bucket []*hashNode
+	bucket []*headNode
 	size   int
 }
 
@@ -23,9 +27,9 @@ func hashFunc(key string) int {
 }
 func (h *hashMap) init(size int) {
 	h.size = size
-	h.bucket = make([]*hashNode, size)
+	h.bucket = make([]*headNode, size)
 }
-func (h *hashMap) insert(key string, value any) {
+func (h *hashMap) insert(key, value string) {
 	hashKey := hashFunc(key)
 	node := &hashNode{info: value}
 	bucket := h.bucket
@@ -34,35 +38,38 @@ func (h *hashMap) insert(key string, value any) {
 		return
 	}
 	if bucket[hashKey] != nil {
-		head := bucket[hashKey]
-		for head.next != nil {
-			head = head.next
+		pointer := bucket[hashKey]
+		temp := pointer.head
+		for temp.next != nil {
+			temp = temp.next
 		}
-		head.next = node
+		temp.next = node
 	} else {
-		bucket[hashKey] = node
+		pointer := &headNode{}
+		pointer.head = &hashNode{info: key}
+		pointer.head.next = node
+		bucket[hashKey] = pointer
 	}
 }
 
-func (h *hashMap) get(key string, value any) {
+func (h *hashMap) get(key string, value string) {
 	bucket := h.bucket
 	hashKey := hashFunc(key)
-	hashlist := bucket[hashKey]
-	if hashlist == nil {
+	pointer := bucket[hashKey]
+	if pointer == nil {
 		fmt.Println("Key is invalid!")
 		return
 	} else {
-		head := hashlist
-		if head.info == value {
-			fmt.Println(value)
-			return
+		temp := pointer.head
+		if temp.next.info == value {
+			fmt.Print(temp.next.info)
 		} else {
-			for head.next != nil {
-				if head.info == value {
-					fmt.Println(value)
+			for temp.next != nil {
+				if temp.info == value {
+					fmt.Println(temp.info)
 					return
 				}
-				head = head.next
+				temp = temp.next
 			}
 		}
 	}
@@ -72,8 +79,17 @@ func Call() {
 	h := &hashMap{}
 	h.init(11)
 	h.insert("name", "Alice")
-	h.insert("age", 25)
-	h.get("name", "Alice") // Alice
-	h.get("age", 25)       // 25
-	h.get("city", "ok")    // Key not found
+	h.insert("name", "Raji")
+	h.insert("name", "Harsh")
+	h.insert("age", "25")
+	fmt.Println("\n")
+	h.get("name", "Alice")
+	fmt.Println("\n")
+	h.get("name", "Raji")
+	fmt.Println("\n")
+	h.get("name", "Harsh")
+	fmt.Println("\n")
+	h.get("age", "25")
+	fmt.Println("\n")   // 25
+	h.get("city", "ok") // Key not found
 }
